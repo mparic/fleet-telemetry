@@ -9,5 +9,9 @@
     "alerts": ["logger"],
     "errors": ["logger"],
     "connectivity": ["logger"]
+  },
+  "tls": {
+    "server_cert": "/etc/ssl/fleet-telemetry/server.crt",
+    "server_key": "/etc/ssl/fleet-telemetry/server.key"
   }
 }
