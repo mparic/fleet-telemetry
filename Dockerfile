@@ -28,7 +28,8 @@ ENV CGO_LDFLAGS="-lstdc++"
 RUN make
 
 # hadolint ignore=DL3006
-FROM gcr.io/distroless/cc-debian11:nonroot
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /
 COPY --from=build /go/bin/fleet-telemetry /fleet-telemetry
 COPY config/garagewatts.json /etc/fleet-telemetry/config.json
