@@ -33,4 +33,4 @@ WORKDIR /
 COPY --from=build /go/bin/fleet-telemetry /fleet-telemetry
 COPY config/garagewatts.json /etc/fleet-telemetry/config.json
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-CMD ["/docker-entrypoint.sh"]
+CMD ["/bin/sh", "/docker-entrypoint.sh"]
