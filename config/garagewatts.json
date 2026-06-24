@@ -1,0 +1,16 @@
+{
+  "host": "0.0.0.0",
+  "port": 443,
+  "log_level": "info",
+  "json_log_enable": true,
+  "transmit_decoded_records": true,
+  "records": {
+    "V": ["webhook"],
+    "alerts": ["logger"],
+    "errors": ["logger"]
+  },
+  "tls": {
+    "server_cert": "/etc/ssl/certs/server.crt",
+    "server_key": "/etc/ssl/private/server.key"
+  }
+}
