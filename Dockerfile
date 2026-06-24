@@ -31,5 +31,6 @@ RUN make
 FROM gcr.io/distroless/cc-debian11:nonroot
 WORKDIR /
 COPY --from=build /go/bin/fleet-telemetry /
+COPY config/garagewatts.json /etc/fleet-telemetry/config.json
 
 CMD ["/fleet-telemetry", "-config", "/etc/fleet-telemetry/config.json"]
