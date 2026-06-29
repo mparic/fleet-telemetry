@@ -64,7 +64,7 @@ func (d *Dispatcher) Produce(record *telemetry.Record) {
 func (d *Dispatcher) Close() error { return nil }
 
 // ProcessReliableAck satisfies telemetry.Producer; webhooks are fire-and-forget.
-func (d *Dispatcher) ProcessReliableAck(entry *telemetry.Record) {}
+func (d *Dispatcher) ProcessReliableAck(_ *telemetry.Record) {}
 
 // ReportError satisfies telemetry.Producer.
 func (d *Dispatcher) ReportError(message string, err error, logInfo logrus.LogInfo) {
