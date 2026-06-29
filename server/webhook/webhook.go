@@ -1,3 +1,4 @@
+// Package webhook posts telemetry records to an external HTTP endpoint.
 package webhook
 
 import (
@@ -53,7 +54,7 @@ func (d *Dispatcher) Produce(record *telemetry.Record) {
 		d.logger.ErrorLog("webhook_dispatch_error", err, nil)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		d.logger.ErrorLog("webhook_unexpected_status", nil, logrus.LogInfo{"status": resp.StatusCode})
