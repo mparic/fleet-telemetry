@@ -8,14 +8,12 @@ import (
 	"os"
 	"time"
 
-	logrus "github.com/sirupsen/logrus"
-	"github.com/teslamotors/fleet-telemetry/datastore/simple"
-	"github.com/teslamotors/fleet-telemetry/messages"
-	"github.com/teslamotors/fleet-telemetry/server/airbrake"
+	logrus "github.com/teslamotors/fleet-telemetry/logger"
 	"github.com/teslamotors/fleet-telemetry/telemetry"
 )
 
-// Dispatcher posts telemetry events to a GarageWatts Edge Function
+// Dispatcher posts telemetry records to a GarageWatts Edge Function.
+// It implements the telemetry.Producer interface.
 type Dispatcher struct {
 	url    string
 	secret string
@@ -23,6 +21,7 @@ type Dispatcher struct {
 	logger *logrus.Logger
 }
 
+// NewDispatcher builds a Dispatcher from FLEET_TELEMETRY_WEBHOOK_* env vars.
 func NewDispatcher(logger *logrus.Logger) *Dispatcher {
 	return &Dispatcher{
 		url:    os.Getenv("FLEET_TELEMETRY_WEBHOOK_URL"),
@@ -32,16 +31,17 @@ func NewDispatcher(logger *logrus.Logger) *Dispatcher {
 	}
 }
 
-func (d *Dispatcher) Dispatch(record *telemetry.Record) {
+// Produce posts a single telemetry record to the configured webhook.
+func (d *Dispatcher) Produce(record *telemetry.Record) {
 	payload, err := json.Marshal(record)
 	if err != nil {
-		d.logger.Errorf("[webhook] marshal error: %v", err)
+		d.logger.ErrorLog("webhook_marshal_error", err, nil)
 		return
 	}
 
 	req, err := http.NewRequest("POST", d.url, bytes.NewBuffer(payload))
 	if err != nil {
-		d.logger.Errorf("[webhook] request error: %v", err)
+		d.logger.ErrorLog("webhook_request_error", err, nil)
 		return
 	}
 
@@ -50,16 +50,23 @@ func (d *Dispatcher) Dispatch(record *telemetry.Record) {
 
 	resp, err := d.client.Do(req)
 	if err != nil {
-		d.logger.Errorf("[webhook] dispatch error: %v", err)
+		d.logger.ErrorLog("webhook_dispatch_error", err, nil)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		d.logger.Errorf("[webhook] unexpected status: %d", resp.StatusCode)
+		d.logger.ErrorLog("webhook_unexpected_status", nil, logrus.LogInfo{"status": resp.StatusCode})
 	}
 }
 
-func (d *Dispatcher) ReportError(err error, r *telemetry.Record, logInfo simple.LogInfo) {}
+// Close satisfies telemetry.Producer; the dispatcher holds no resources to release.
+func (d *Dispatcher) Close() error { return nil }
 
-func (d *Dispatcher) ProcessingStats() airbrake.Stats { return airbrake.Stats{} }
+// ProcessReliableAck satisfies telemetry.Producer; webhooks are fire-and-forget.
+func (d *Dispatcher) ProcessReliableAck(entry *telemetry.Record) {}
+
+// ReportError satisfies telemetry.Producer.
+func (d *Dispatcher) ReportError(message string, err error, logInfo logrus.LogInfo) {
+	d.logger.ErrorLog(message, err, logInfo)
+}
