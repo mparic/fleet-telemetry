@@ -18,10 +18,14 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Sync fork with upstream
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
-        with:
-          upstream_sync_repo: teslamotors/fleet-telemetry
-          upstream_sync_branch: main
-          target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/teslamotors/fleet-telemetry.git
+          git fetch upstream main
+
+      - name: Merge upstream into main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git merge upstream/main --no-edit --strategy-option=ours
+          git push origin main
