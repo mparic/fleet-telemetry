@@ -28,9 +28,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config merge.ours.driver true
-          # Keep our versions of files that intentionally diverge from upstream.
+          # Prevent Dockerfile conflict (intentional permanent divergence from upstream).
           # Working-tree only — not staged or committed.
-          printf '.github/workflows/* merge=ours\nDockerfile merge=ours\n' > .gitattributes
+          printf 'Dockerfile merge=ours\n' > .gitattributes
           git merge upstream/main --no-edit
           rm .gitattributes
+          # GITHUB_TOKEN cannot push workflow file changes. Restore our versions
+          # and amend the merge commit so the push never includes workflow changes.
+          git checkout HEAD^ -- .github/workflows/
+          git diff --cached --quiet || git commit --amend --no-edit
           git push origin main
