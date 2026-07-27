@@ -28,14 +28,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config merge.ours.driver true
-          # Keep our workflow files — upstream CI config isn't relevant to this fork
-          # and pushing workflow changes requires a PAT we don't want to manage.
-          # This is a working-tree-only change; it is not committed.
-          printf '.github/workflows/* merge=ours\n' > .gitattributes
-          if ! git merge upstream/main --no-edit; then
-            git diff --name-only --diff-filter=U | xargs git checkout HEAD --
-            git add -A
-            git commit --no-edit
-          fi
+          # Keep our versions of files that intentionally diverge from upstream.
+          # Working-tree only — not staged or committed.
+          printf '.github/workflows/* merge=ours\nDockerfile merge=ours\n' > .gitattributes
+          git merge upstream/main --no-edit
           rm .gitattributes
           git push origin main
