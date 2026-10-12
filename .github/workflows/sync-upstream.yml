@@ -28,9 +28,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config merge.ours.driver true
-          # Prevent Dockerfile conflict (intentional permanent divergence from upstream).
+          # Resolve conflicts in our favour for files we deliberately own.
           # Working-tree only — not staged or committed.
-          printf 'Dockerfile merge=ours\n' > .gitattributes
+          #   Dockerfile          intentional permanent divergence from upstream.
+          #   .github/workflows/* GITHUB_TOKEN cannot push workflow changes, and we
+          #                       restore our versions after the merge anyway — but
+          #                       `git merge` aborts on a content conflict before it
+          #                       ever reaches that restore step (this broke the sync
+          #                       when upstream and the fork both edited build.yml).
+          printf 'Dockerfile merge=ours\n.github/workflows/* merge=ours\n' > .gitattributes
           git merge upstream/main --no-edit
           rm .gitattributes
           # GITHUB_TOKEN cannot push workflow file changes. Restore our versions
